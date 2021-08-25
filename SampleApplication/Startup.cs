@@ -17,6 +17,7 @@ using MediatR;
 using SampleApplication.Behaviours;
 using SampleApplication.Middleware;
 using SampleApplication.Models;
+using SampleApplication.Services.Products;
 using SampleApplication.Validators;
 
 namespace SampleApplication
@@ -34,11 +35,11 @@ namespace SampleApplication
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMediatR(typeof(Startup));
-            services.AddTransient<IValidator<Product>, ProductValidator>();
+            services.AddTransient<IValidator<AddProductRequest>, ProductValidator>();
             services.AddSingleton<InMemoryDataStore>();
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
-            services.AddControllers().AddFluentValidation();
+            services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SampleApplication", Version = "v1" });
