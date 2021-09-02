@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using SampleApplication.Models;
+using SampleApplication.Services.Products;
 
 namespace SampleApplication.Validators
 {
