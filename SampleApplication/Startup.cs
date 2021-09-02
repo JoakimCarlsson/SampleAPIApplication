@@ -68,12 +68,12 @@ namespace SampleApplication
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger(options => { options.RouteTemplate = "api-docs/{documentName}/docs.json"; });
+                app.UseSwagger(options => { options.RouteTemplate = "swagger/{documentName}/docs.json"; });
                 app.UseSwaggerUI(options =>
                 {
-                    options.RoutePrefix = "api-docs";
+                    options.RoutePrefix = "swagger";
                     foreach (var description in provider.ApiVersionDescriptions)
-                        options.SwaggerEndpoint($"/api-docs/{description.GroupName}/docs.json", description.GroupName.ToUpperInvariant());
+                        options.SwaggerEndpoint($"/swagger/{description.GroupName}/docs.json", description.GroupName.ToUpperInvariant());
                 });
             }
 
