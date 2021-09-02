@@ -1,23 +1,16 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;
-using SampleApplication.Behaviours;
 using SampleApplication.Middleware;
 using SampleApplication.Models;
-using SampleApplication.Services.Products;
+using SampleApplication.Reponse;
 using SampleApplication.Validators;
 
 namespace SampleApplication
@@ -35,11 +28,14 @@ namespace SampleApplication
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMediatR(typeof(Startup));
-            services.AddTransient<IValidator<AddProductRequest>, ProductValidator>();
+            services.AddTransient<IValidator<Product>, ProductValidator>();
             services.AddSingleton<InMemoryDataStore>();
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
-            services.AddControllers();
+            services.AddControllers().ConfigureApiBehaviorOptions(opt =>
+            {
+                opt.InvalidModelStateResponseFactory = actionContext => new BadRequestObjectResult(new ApiBadRequestResponse(actionContext.ModelState));
+            }).AddFluentValidation();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SampleApplication", Version = "v1" });
@@ -57,7 +53,6 @@ namespace SampleApplication
             }
 
             app.UseMiddleware<ErrorWrappingMiddleware>();
-
 
             app.UseHttpsRedirection();
 

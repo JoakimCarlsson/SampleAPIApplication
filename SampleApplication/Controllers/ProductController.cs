@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SampleApplication.Services.Products;
 
 namespace SampleApplication.Controllers
 {
     [Route("api/[controller]")]
+    [ApiController]
     public class ProductController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -29,7 +31,7 @@ namespace SampleApplication.Controllers
         public async Task<ActionResult> AddProduct([FromBody] Models.Product product)
         {
             var newProduct = await _mediator.Send(new AddProductRequest(product));
-            return CreatedAtRoute("GetProductById", new { id = newProduct.Id, }, product);
+            return CreatedAtRoute(nameof(GetProductById), new { id = newProduct.Id, }, product);
         }
 
         [HttpGet("{id:int}", Name = "GetProductById")]

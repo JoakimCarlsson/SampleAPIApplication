@@ -8,14 +8,14 @@ using SampleApplication.Services.Products;
 
 namespace SampleApplication.Validators
 {
-    public class ProductValidator : AbstractValidator<AddProductRequest>
+    public class ProductValidator : AbstractValidator<Product>
     {
         public ProductValidator()
         {
-            RuleFor(i => i.Product.Name)
+            RuleFor(i => i.Name)
                 .NotEmpty().WithMessage("{PropertyName} is required.");
 
-            RuleFor(i => i.Product.Price)
+            RuleFor(i => i.Price)
                 .GreaterThan(10000).WithMessage("{PropertyName} must be more then 10000");
         }
     }
