@@ -8,10 +8,16 @@ using Microsoft.OpenApi.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.Options;
+using SampleApplication.ConfigurationOptions;
+using SampleApplication.Filters;
 using SampleApplication.Middleware;
 using SampleApplication.Models;
 using SampleApplication.Reponse;
 using SampleApplication.Validators;
+using Swashbuckle.AspNetCore.SwaggerGen;
+
 
 namespace SampleApplication
 {
@@ -31,25 +37,44 @@ namespace SampleApplication
             services.AddTransient<IValidator<Product>, ProductValidator>();
             services.AddSingleton<InMemoryDataStore>();
 
+            services.AddApiVersioning(opt =>
+            {
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.DefaultApiVersion = new ApiVersion(1, 0);
+                opt.ReportApiVersions = true;
+            });
+
+            services.AddVersionedApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
+
             services.AddControllers().ConfigureApiBehaviorOptions(opt =>
             {
                 opt.InvalidModelStateResponseFactory = actionContext => new BadRequestObjectResult(new ApiBadRequestResponse(actionContext.ModelState));
             }).AddFluentValidation();
 
-            services.AddSwaggerGen(c =>
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SampleApplication", Version = "v1" });
+                options.OperationFilter<SwaggerDefaultValues>();
             });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SampleApplication v1"));
+                app.UseSwagger(options => { options.RouteTemplate = "api-docs/{documentName}/docs.json"; });
+                app.UseSwaggerUI(options =>
+                {
+                    options.RoutePrefix = "api-docs";
+                    foreach (var description in provider.ApiVersionDescriptions)
+                        options.SwaggerEndpoint($"/api-docs/{description.GroupName}/docs.json", description.GroupName.ToUpperInvariant());
+                });
             }
 
             app.UseMiddleware<ErrorWrappingMiddleware>();
